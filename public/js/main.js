@@ -29,18 +29,16 @@ socket.on('log',function(array){
     console.log.apply(console,array);
 });
 
-socket.on('join_room_response',function(payload) {
-    console.log("here");
-    if(payload.result == 'fail') {
+socket.on('join_room_response',function(payload){
+    if(payload.result == 'fail'){
         alert(payload.message);
         return;
     }
     $('#messages').append('<p>New user joined the room: '+payload.username+'</p>');
 });
 
-socket.on('send_message_response',function(payload) {
-    console.log("here");
-    if(payload.result == 'fail') {
+socket.on('send_message_response',function(payload){
+    if(payload.result == 'fail'){
         alert(payload.message);
         return;
     }
@@ -49,16 +47,18 @@ socket.on('send_message_response',function(payload) {
 
 function send_message(){
     var payload = {};
-        payload.room = chat_room;
-        payload.username = username;
-        payload.message = $('#send_message_holder').val();
-        console.log('*** Client Log Message: \'send_message\' payload: '+JSON.stringify(payload));
-        socket.emit('send_message',payload);
-    }
+    payload.room = chat_room;
+    payload.username = username;
+    payload.message = $('#send_message_holder').val();
+    console.log('*** Client Log Message: \'send_message\' payload: '+JSON.stringify(payload));
+    socket.emit('send_message',payload);
+}    
 
-$(function() {
+$(function(){
     var payload = {};
-        payload.room = chat_room;
-        payload.username = username;
-    
-    });
+    payload.room = chat_room;
+    payload.username = username;
+
+    console.log('*** Client Log Message: \'join_room\' payload: '+JSON.stringify(payload));
+    socket.emit('join_room',payload);
+});
