@@ -549,7 +549,7 @@ socket.on('game_start',function(payload){
     {
         'row': 0-7 the row to play the token on
         'column': 0-7 the column to play the token on
-        'color': 'white or black'
+        'color': 'summer or winter'
     }
     if successful a success message will be followed by a game_update message
     play_token_response:
@@ -638,7 +638,7 @@ socket.on('play_token',function(payload){
 
     /* Check that the player color is present and valid */
     var color = payload.color;
-    if(('undefined' === typeof color) || !color || (color != 'white' && color != 'black')){
+    if(('undefined' === typeof color) || !color || (color != 'summer' && color != 'winter')){
         var error_message = 'play_token didn\'t specify a valid color, command aborted';
         log(error_message);
         socket.emit('play_token_response', {
@@ -672,8 +672,8 @@ socket.on('play_token',function(payload){
     }
 
     /* If the wrong socket is playing the color */
-    if( ((game.whose_turn === 'white') && (game.player_white.socket != socket.id)) ||
-        ((game.whose_turn === 'black') && (game.player_black.socket != socket.id))){
+    if( ((game.whose_turn === 'summer') && (game.player_summer.socket != socket.id)) ||
+        ((game.whose_turn === 'winter') && (game.player_winter.socket != socket.id))){
         
         var error_message = 'play_token turn played by wrong player';
         log(error_message);
@@ -692,17 +692,17 @@ socket.on('play_token',function(payload){
     socket.emit('play_token_response',success_data);
 
     /* Execute the move */
-    if(color == 'white'){
+    if(color == 'summer'){
+        game.board[row][column] = 's';
+        flip_board('s',row,column,game.board);
+        game.whose_turn = 'winter';
+        game.legal_moves = calculate_valid_moves('w',game.board);
+    }
+    else if(color == 'winter'){
         game.board[row][column] = 'w';
         flip_board('w',row,column,game.board);
-        game.whose_turn = 'black';
-        game.legal_moves = calculate_valid_moves('b',game.board);
-    }
-    else if(color == 'black'){
-        game.board[row][column] = 'b';
-        flip_board('b',row,column,game.board);
-        game.whose_turn = 'white';
-        game.legal_moves = calculate_valid_moves('w',game.board);
+        game.whose_turn = 'summer';
+        game.legal_moves = calculate_valid_moves('s',game.board);
     }
     
     var d = new Date();
@@ -719,28 +719,28 @@ socket.on('play_token',function(payload){
 
     function create_new_game(){
         var new_game = {};
-        new_game.player_white = {};
-        new_game.player_black = {};
-        new_game.player_white.socket = '';
-        new_game.player_white.username = '';
-        new_game.player_black.socket = '';
-        new_game.player_black.username = '';
+        new_game.player_summer = {};
+        new_game.player_winter = {};
+        new_game.player_summer.socket = '';
+        new_game.player_summer.username = '';
+        new_game.player_winter.socket = '';
+        new_game.player_winter.username = '';
 
         var d = new Date();
         new_game.last_move_time = d.getTime();
-        new_game.whose_turn = 'black';
+        new_game.whose_turn = 'winter';
         new_game.board = [
                             [' ',' ',' ',' ',' ',' ',' ',' '],
                             [' ',' ',' ',' ',' ',' ',' ',' '],
                             [' ',' ',' ',' ',' ',' ',' ',' '],
-                            [' ',' ',' ','w','b',' ',' ',' '],
-                            [' ',' ',' ','b','w',' ',' ',' '],
+                            [' ',' ',' ','s','w',' ',' ',' '],
+                            [' ',' ',' ','w','s',' ',' ',' '],
                             [' ',' ',' ',' ',' ',' ',' ',' '],
                             [' ',' ',' ',' ',' ',' ',' ',' '],
                             [' ',' ',' ',' ',' ',' ',' ',' ']
                          ];
 
-        new_game.legal_moves = calculate_valid_moves('b',new_game.board);
+        new_game.legal_moves = calculate_valid_moves('w',new_game.board);
 
         return new_game;
     }
@@ -771,11 +771,11 @@ socket.on('play_token',function(payload){
 
     function valid_move(who,dr,dc,r,c,board){
         var other;
-        if(who === 'b'){
-            other = 'w';
+        if(who === 'w'){
+            other = 's';
         }
-        else if(who === 'w'){
-            other = 'b';
+        else if(who === 's'){
+            other = 'w';
         }
         else{
             log('Houston we have a color problem: '+who);
@@ -887,13 +887,13 @@ socket.on('play_token',function(payload){
             numClients = roomObject.length;
             if(numClients > 2){
                 console.log('Too many clients in room: '+game_id+' #: '+numClients);
-                if(games[game_id].player_white.socket == roomObject.sockets[0]){
-                    games[game_id].player_white.socket = '';
-                    games[game_id].player_white.username = '';
+                if(games[game_id].player_summer.socket == roomObject.sockets[0]){
+                    games[game_id].player_summer.socket = '';
+                    games[game_id].player_summer.username = '';
                 }
-                if(games[game_id].player_black.socket == roomObject.sockets[0]){
-                    games[game_id].player_black.socket = '';
-                    games[game_id].player_black.username = '';
+                if(games[game_id].player_winter.socket == roomObject.sockets[0]){
+                    games[game_id].player_winter.socket = '';
+                    games[game_id].player_winter.username = '';
                 }
                 /* Kick one of the extra people out */
                 var sacrifice = Object.keys(roomObject.sockets)[0];
@@ -904,29 +904,29 @@ socket.on('play_token',function(payload){
 
         /* Assign this socket a color */
         /* If the current player isn't assigned a color */
-        if((games[game_id].player_white.socket != socket.id) && (games[game_id].player_black.socket != socket.id)){
+        if((games[game_id].player_summer.socket != socket.id) && (games[game_id].player_winter.socket != socket.id)){
             console.log('Player isn\'t assigned a color: '+socket.id);
             /* and there isn't a color to give them */
-            if((games[game_id].player_black.socket != '') && (games[game_id].player_white.socket != '')){
+            if((games[game_id].player_winter.socket != '') && (games[game_id].player_summer.socket != '')){
                 /* then reset the assginments */
-                games[game_id].player_white.socket = '';
-                games[game_id].player_white.username = '';
-                games[game_id].player_black.socket = '';
-                games[game_id].player_black.username = '';
+                games[game_id].player_summer.socket = '';
+                games[game_id].player_summer.username = '';
+                games[game_id].player_winter.socket = '';
+                games[game_id].player_winter.username = '';
             }
         }
         /* Assign colors to the players if not already done */
-        if(games[game_id].player_white.socket == ''){
-            if(games[game_id].player_black.socket != socket.id){
-                games[game_id].player_white.socket = socket.id;
-                games[game_id].player_white.username = players[socket.id].username;
+        if(games[game_id].player_summer.socket == ''){
+            if(games[game_id].player_winter.socket != socket.id){
+                games[game_id].player_summer.socket = socket.id;
+                games[game_id].player_summer.username = players[socket.id].username;
             }
         }
         
-        if(games[game_id].player_black.socket == ''){
-            if(games[game_id].player_white.socket != socket.id){
-                games[game_id].player_black.socket = socket.id;
-                games[game_id].player_black.username = players[socket.id].username;
+        if(games[game_id].player_winter.socket == ''){
+            if(games[game_id].player_summer.socket != socket.id){
+                games[game_id].player_winter.socket = socket.id;
+                games[game_id].player_winter.username = players[socket.id].username;
             }
         }
 
@@ -942,29 +942,29 @@ socket.on('play_token',function(payload){
         /* Check to see if the game is over */
         var row,column;
         var count = 0;
-        var black = 0;
-        var white = 0;
+        var winter = 0;
+        var summer = 0;
         for(row = 0; row < 8;row++){
             for(column = 0; column < 8;column++){
                 if(games[game_id].legal_moves[row][column] != ' '){
                     count++;
                 }
-                if(games[game_id].board[row][column] === 'b'){
-                    black++;
-                }
                 if(games[game_id].board[row][column] === 'w'){
-                    white++;
+                    winter++;
+                }
+                if(games[game_id].board[row][column] === 's'){
+                    summer++;
                 }
             }
         }
         if(count == 0){
             /* Send a game over message */
             var winner = 'tie game';
-            if(black > white){
-                winner = 'black';
+            if(winter > summer){
+                winner = 'winter';
             }
-            if(white > black){
-                winner = 'white';
+            if(summer > winter){
+                winner = 'summer';
             }
             var success_data = {
                                 result: 'success',

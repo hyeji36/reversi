@@ -305,11 +305,11 @@ socket.on('game_update',function(payload){
 
     /* Update my color */
 
-    if(socket.id == payload.game.player_white.socket){
-        my_color = 'white';
+    if(socket.id == payload.game.player_summer.socket){
+        my_color = 'summer';
     }
-    else if(socket.id == payload.game.player_black.socket){
-        my_color = 'black';
+    else if(socket.id == payload.game.player_winter.socket){
+        my_color = 'winter';
     }
     else{
         /* Something weird is going on, like three people playing at once */
@@ -341,46 +341,46 @@ socket.on('game_update',function(payload){
 
     /* Animate changes to the board */
 
-    var blacksum = 0;
-    var whitesum = 0;
+    var wintersum = 0;
+    var summersum = 0;
     
     var row,column;
     for(row = 0; row < 8; row++){
         for(column = 0; column < 8; column++){
-            if(board[row][column] == 'b'){
-                blacksum++;
-            }
             if(board[row][column] == 'w'){
-                whitesum++;
+                wintersum++;
+            }
+            if(board[row][column] == 's'){
+                summersum++;
             }
             /* If a board space has changed */
             if(old_board[row][column] !=board [row][column]){
                 if(old_board[row][column] == '?' && board[row][column] == ' '){
                     $('#'+row+'_'+column).html('<img src="assets/images/empty_new.gif" alt="empty square"/>');
                 }
-                else if(old_board[row][column] == '?' && board[row][column] == 'w'){
-                    $('#'+row+'_'+column).html('<img src="assets/images/empty_to_white.gif" alt="white square"/>');
+                else if(old_board[row][column] == '?' && board[row][column] == 's'){
+                    $('#'+row+'_'+column).html('<img src="assets/images/empty_to_summer.gif" alt="summer square"/>');
                 }
-                else if(old_board[row][column] == '?' && board[row][column] == 'b'){
-                    $('#'+row+'_'+column).html('<img src="assets/images/empty_to_black.gif" alt="black square"/>');
+                else if(old_board[row][column] == '?' && board[row][column] == 'w'){
+                    $('#'+row+'_'+column).html('<img src="assets/images/empty_to_winter.gif" alt="winter square"/>');
+                }
+                else if(old_board[row][column] == ' ' && board[row][column] == 's'){
+                    $('#'+row+'_'+column).html('<img src="assets/images/empty_to_summer.gif" alt="summer square"/>');
                 }
                 else if(old_board[row][column] == ' ' && board[row][column] == 'w'){
-                    $('#'+row+'_'+column).html('<img src="assets/images/empty_to_white.gif" alt="white square"/>');
+                    $('#'+row+'_'+column).html('<img src="assets/images/empty_to_winter.gif" alt="winter square"/>');
                 }
-                else if(old_board[row][column] == ' ' && board[row][column] == 'b'){
-                    $('#'+row+'_'+column).html('<img src="assets/images/empty_to_black.gif" alt="black square"/>');
+                else if(old_board[row][column] == 's' && board[row][column] == ' '){
+                    $('#'+row+'_'+column).html('<img src="assets/images/summer_to_empty_.gif" alt="empty square"/>');
                 }
                 else if(old_board[row][column] == 'w' && board[row][column] == ' '){
-                    $('#'+row+'_'+column).html('<img src="assets/images/white_to_empty_.gif" alt="empty square"/>');
+                    $('#'+row+'_'+column).html('<img src="assets/images/winter_to_empty.gif" alt="empty square"/>');
                 }
-                else if(old_board[row][column] == 'b' && board[row][column] == ' '){
-                    $('#'+row+'_'+column).html('<img src="assets/images/black_to_empty.gif" alt="empty square"/>');
+                else if(old_board[row][column] == 's' && board[row][column] == 'w'){
+                    $('#'+row+'_'+column).html('<img src="assets/images/summer_to_winter.gif" alt="winter square"/>');
                 }
-                else if(old_board[row][column] == 'w' && board[row][column] == 'b'){
-                    $('#'+row+'_'+column).html('<img src="assets/images/white_to_black.gif" alt="black square"/>');
-                }
-                else if(old_board[row][column] == 'b' && board[row][column] == 'w'){
-                    $('#'+row+'_'+column).html('<img src="assets/images/black_to_white.gif" alt="white square"/>');
+                else if(old_board[row][column] == 'w' && board[row][column] == 's'){
+                    $('#'+row+'_'+column).html('<img src="assets/images/winter_to_summer.gif" alt="summer square"/>');
                 }
                 else{
                     $('#'+row+'_'+column).html('<img src="assets/images/error_new.gif" alt="error"/>');
@@ -407,8 +407,8 @@ socket.on('game_update',function(payload){
             }
         }   
     }
-    $('#blacksum').html(blacksum);
-    $('#whitesum').html(whitesum);
+    $('#wintersum').html(wintersum);
+    $('#summersum').html(summersum);
 
     old_board = board;
 });
